@@ -1,0 +1,320 @@
+//-------------------------------------------------------//
+// Render Code          				                 //
+//-------------------------------------------------------//
+
+global bool FSFA_Sonic_Fall_Sprite
+global bool FSFA_Super_Sonic_Fall_Sprite
+
+global bool FSFA_Twirl
+global bool FSFA_Transform
+global bool FSFA_Transitions
+global bool FSFA_Uncurled
+
+define u8 FallFromSpring = u8[0xffffF739 + ((A0 == 0xffffb000) ? 0 : 0x01)]
+
+define u8 char.state.FALLING	=  0x36
+
+// Diagonal springs
+//# address-hook(0x0234e6) end(0x0235cc)
+function void fn0234e6()
+{
+	base.fn0234e6()
+	if (objA0.state.both == 0x0500 && !competition_mode.active)
+	{
+		if (A1 == 0xffffb000)
+			u8[0xffffF739] = 1 // P1
+		else
+			u8[0xffffF73A] = 1 // P2
+	}
+}
+
+//Upward springs
+//# address-hook(0x022f98) end(0x02304a)
+function void SpringVertical.ApplyToCharacter()
+{
+	base.SpringVertical.ApplyToCharacter()
+	if (objA0.state.both == 0x100 && !competition_mode.active)
+	{
+		if (A1 == 0xffffb000)
+			u8[0xffffF739] = 1 // P1
+		else
+			u8[0xffffF73A] = 1 // P2
+	}
+}
+
+//# address-hook(0x011e8c) end(0x011eea)
+function void Character.UpdateRotationInAir()
+{
+	base.Character.UpdateRotationInAir()
+	// Ignore Sawnic and Sludgles
+	if !u8[0xffffe654] && ((Mods.isModActive("Sawnic") && char.character == CHARACTER_SONIC) || ((Mods.isModActive("SAWNIC & SLUDGLES") && (char.character == CHARACTER_SONIC || char.character == CHARACTER_KNUCKLES))))
+	{
+		return
+	}
+
+	// This is where the magic happens
+	if (!competition_mode.active && char.state != char.state.ROLLING && !char.rotation.x && char.state <= 0x08)
+	{
+		bool chars_stand = (char.state == char.state.STANDING || char.state == char.state.LOOKING_UP || char.state == char.state.COWERING)
+		bool chars_hurt = (char.state == char.state.FALLING_PANIC || char.state == char.state.GOT_HURT_PANIC || char.state == char.state.GOT_HURT)
+		bool chars_transforming = (char.state.former == char.state.TAILS_TRANSFORM || char.state.former == char.state.TRANSFORMING)
+
+		if (FSFA_Twirl && char.velocity.y >= 0 && FallFromSpring)
+		{
+			char.state = char.state.FALLING
+			return
+		}
+
+		if (FSFA_Transform && chars_transforming && (char.state == char.state.RUNNING) && char.velocity.y >= 0)
+			char.state = char.state.FALLING
+		else if (!chars_hurt && !chars_transforming && FSFA_Uncurled && !CheckSnowboard() && char.rotation.x == 0 && (char.state == char.state.RUNNING || chars_stand) && char.velocity.y >= 282) //282
+			char.state = char.state.FALLING
+	}
+}
+
+//# address-hook(0x012600) end(0x01286c)
+//# translated(0x012a2a) end(0x012a6e)
+function void UpdateSonicAnimation()
+{
+	if (char.state == char.state.FALLING)
+		UpdateFallingAnimation()
+	else
+		base.UpdateSonicAnimation()
+}
+
+//# address-hook(0x015862) end(0x015aae)
+function void UpdateTailsAnimation()
+{
+	if (char.state == char.state.FALLING)
+		UpdateFallingAnimation()
+	else
+		base.UpdateTailsAnimation()
+}
+
+//# address-hook(0x017d30) end(0x017ef0)
+function void UpdateKnucklesAnimation()
+{
+	if (char.state == char.state.FALLING)
+		UpdateFallingAnimation()
+	else
+		base.UpdateKnucklesAnimation()
+}
+
+function void UpdateFallingAnimation()
+{
+	if (char.state != char.state.former)
+	{
+		char.state.former = char.state
+		char.animation.frame = 0
+		char.animation.timer = 0
+		char.flags &= ~char.flag.PUSHING
+	}
+
+	FallFromSpring = 0
+
+	D1.u8 = char.flags & char.flag.FACING_LEFT
+	char.render_flags = (char.render_flags & ~(render_flag.FLIP_X | render_flag.FLIP_Y)) | D1.u8
+
+	// Prevents the game from loading garbage data
+	char.animation.sprite = 0x46 // injured sprite
+
+	if (char.rotation.x != 0 || char.protection_flag != 0 || (char.flags & char.flag.ON_OBJECT) || ((char.flags & char.flag.IN_AIR) && (char.control_flags & 0x01)))
+	{
+		char.state = char.state.RUNNING
+		char.state.former = char.state
+		char.animation.frame = 0
+		char.animation.timer = 0
+		updateSonicAnimationRunning()
+	}
+}
+
+function string getFallSpriteKey(u8 character)
+{
+	if (character == CHARACTER_SONIC)
+	{
+		if (super.active)
+			return (FSFA_Super_Sonic_Fall_Sprite) ? "Super_Sonic_fall_CD_beta" : "Super_Sonic_fall_CD"
+		else
+			return (FSFA_Sonic_Fall_Sprite) ? "Sonic_fall_CD_beta" : "Sonic_fall_CD"
+	}
+	else if (character == CHARACTER_KNUCKLES)
+		return "Knuckles_fall"
+	else
+		return "Tails_fall"
+}
+
+function u64 RegularCharFallingAnim(u64 REG_Key, u8 character, u16 animationSpriteEx)
+{
+	u32 sourceBase    = (character == CHARACTER_SONIC) ? ((animationSpriteEx >= 0xda) ? 0x140060 : 0x100000) : (character == CHARACTER_TAILS) ? ((animationSpriteEx >= 0xd1) ? 0x143d00 : 0x3200e0) : 0x1200e0
+	u32 tableAddress  = (character == CHARACTER_SONIC) ? (super.active ? 0x148378 : 0x148182) : (character == CHARACTER_TAILS) ? 0x14a08a : 0x14bd0a
+	u32 mappingOffset = (character == CHARACTER_SONIC) ? (super.active ? 0x146816 : 0x146620) : (character == CHARACTER_TAILS) ? 0x148eb8 : 0x14a8d6		// Not really necessary here, we could also use "char.mapping_offset"
+	// If there's no sprites of any kind in the mod, return the ugly rotated sprites
+	u64 error_key = Renderer.setupCustomCharacterSprite(sourceBase, tableAddress, mappingOffset, ((character == CHARACTER_KNUCKLES) ? 0xcb : 0x56), 0x00)
+	u64 key = 0
+	u64 Knux_key = "character_knuckles_0xcb"
+	u8 REG_FallingFrames = 0
+
+	REG_FallingFrames = CheckForFallingFrames(stringformat("Modded_%s_%d", REG_Key))
+	animationSpriteEx = ((global.framecounter >> FallAnimSpeed(character, u8[0xffffe654])) % (REG_FallingFrames + 0x01))
+	key = stringformat("Modded_%s_%d", REG_Key, animationSpriteEx)
+	if (!Renderer.hasCustomSprite(key))
+	{
+		if (character == CHARACTER_KNUCKLES)
+			return (Renderer.hasCustomSprite(Knux_key)) ? Knux_key : error_key
+
+		if (!Renderer.hasCustomSprite(REG_Key))
+			return error_key
+
+		return REG_Key
+	}
+
+	return key
+}
+
+function u64 Standalone.getModdedAnimationSpriteKey(u8 character, u16 animationSpriteEx)
+{
+	if (char.state == char.state.FALLING)
+	{
+		u64 key = 0
+		u64 ES_Key = 0
+		u64 REG_Key = getFallSpriteKey(character)
+		u8 ES_FallingFrames = 0
+		if (!u8[0xffffe654])
+			key = RegularCharFallingAnim(REG_Key, character, animationSpriteEx)
+		else
+		{
+			ES_Key = getESCharacterFallSpriteKey(character, u8[0xffffe654])
+			ES_FallingFrames = CheckForFallingFrames(ES_Key)
+			animationSpriteEx = ((global.framecounter >> FallAnimSpeed(character, u8[0xffffe654])) % (ES_FallingFrames + 0x01))
+			key = stringformat(ES_Key, animationSpriteEx)
+			if (!Renderer.hasCustomSprite(key))
+				key = RegularCharFallingAnim(REG_Key, character, animationSpriteEx)
+		}
+		return key
+	}
+	// Default implementation: No key set
+	return base.Standalone.getModdedAnimationSpriteKey(character, animationSpriteEx)
+}
+
+function string getESCharacterFallSpriteKey(u8 character, u8 extrachar)
+{
+	return base.getESCharacterFallSpriteKey(character, extrachar)
+}
+
+function u8 FallAnimSpeed(u8 character, u8 extrachar)
+{
+	// default speed is 2
+	return 2
+}
+
+function u8 CheckForFallingFrames(string format)
+{
+	u64 NumOfFrames
+
+	for (u16 i = 0; i < 0xff; ++i)
+	{
+		NumOfFrames++
+		if (!DoSpritesExists(format, NumOfFrames))
+		{
+			NumOfFrames--
+			i = 0xff
+		}
+	}
+
+	return NumOfFrames
+}
+
+function bool DoSpritesExists(string key, u64 arg)
+{
+	return (Renderer.hasCustomSprite(stringformat(key, arg)))
+}
+
+function bool Level_Transitions()
+{
+	return FSFA_Transitions
+}
+
+// Backup incase 'FallFromSpring' isn't reset in UpdateFallingAnimation()
+//# address-hook(0x011e2a) end(0x011e8a)
+function void Character.UpdateGroundContact()
+{
+	base.Character.UpdateGroundContact()
+	FallFromSpring = 0
+}
+
+function void fn0067ee()
+{
+	base.fn0067ee()
+	if (Level_Transitions())
+	{
+		// Beginning of any level that has the character starting out in their FALLING_PANIC animation
+		// Levels include: Hydrocity Zone, Marble Garden Zone, Lava Reef Zone, and the Lava Reef Boss Act
+		if (objA1.state == char.state.FALLING_PANIC)
+		{
+			u8[0xfffb000 + 0x20] = char.state.FALLING
+			if (getNumPlayers() >= 2)
+				u8[0xffffb04a + 0x20] = char.state.FALLING
+		}
+	}
+}
+
+// Falling off the brigde in AIZ 2
+//# address-hook(0x069588) end(0x0695a6)
+function void fn069588()
+{
+	base.fn069588()
+	if (objA0.update_address == 0x0695a8 && Level_Transitions())
+	{
+		u8[0xfffb000 + 0x20] = char.state.FALLING
+		if (getNumPlayers() >= 2)
+			u8[0xffffb04a + 0x20] = char.state.FALLING
+	}
+}
+
+// Knuckles jumps off the bridge in AIZ 2
+//# address-hook(0x069616) end(0x069620)
+function void fn069616()
+{
+	base.fn069616()
+	if (objA0.update_address == 0x069616 && Level_Transitions())
+		u8[0xffffb000 + 0x20] = char.state.FALLING
+}
+
+// Falling from SOZ to LRZ
+
+// Player 1
+//# address-hook(0x077a02) end(0x077a38)
+function void fn077a02()
+{
+	base.fn077a02()
+	if (u8[0xfffb000 + 0x20] == char.state.GOT_HURT && Level_Transitions())
+		u8[0xfffb000 + 0x20] = char.state.FALLING
+}
+
+// Player 2
+//# address-hook(0x077a98) end(0x077ab2)
+function void fn077a98()
+{
+	base.fn077a98()
+	if (u8[0xffffb04a + 0x20] == char.state.GOT_HURT && Level_Transitions())
+		u8[0xffffb04a + 0x20] = char.state.FALLING
+}
+
+// Is Sonic snowboarding?
+function bool CheckSnowboard()
+{
+    u32 Snowboard = 0xffffb000
+    s16 count = 0x6d
+    while (count >= 0)
+    {
+        if u32[Snowboard] == 0x3984e
+        {
+            return true
+        }
+
+        // Go on to next object
+        Snowboard += 0x4a
+        --count
+    }
+    return false
+}

@@ -1,0 +1,87 @@
+{
+	"Metadata":
+	{
+		"Name": "Falling sprites for all",
+		"Author": "iCloudius, MiaPaisano, Edition",
+		"Description": "Replaces the awkward mid-air walking with falling sprites",
+		"ModVersion": "2.0"
+	},
+	"Settings":
+	{
+		"Group1":
+		[
+			{
+				"InternalName": "Falling for you",
+				"DisplayName": "Bouncing off of a Spring",
+				"Variable": "FSFA_Twirl",
+				"DefaultValue": "1",
+				"Category": "General",		
+				"Options":
+				{
+					"0": "Off",
+					"1": "On"
+				}
+			},
+			{
+				"InternalName": "Ditto is a failed Mew",
+				"DisplayName": "After Transforming",
+				"Variable": "FSFA_Transform",
+				"DefaultValue": "1",	
+				"Category": "General",	
+				"Options":
+				{
+					"0": "Off",
+					"1": "On"
+				}
+			},
+			{
+				"InternalName": "From AIZ to that one zone",
+				"DisplayName": "Level Transitions",
+				"Variable": "FSFA_Transitions",
+				"DefaultValue": "0",
+				"Category": "General",		
+				"Options":
+				{
+					"0": "Off",
+					"1": "On"
+				}
+			},
+			{
+				"InternalName": "Uncurl",
+				"DisplayName": "While Uncurled",
+				"Variable": "FSFA_Uncurled",
+				"DefaultValue": "0",
+				"Category": "General",		
+				"Options":
+				{
+					"0": "Off",
+					"1": "On"
+				}
+			},
+			{
+				"InternalName": "Sonic Fall",
+				"DisplayName": "Sonic Fall Sprite:",
+				"Variable": "FSFA_Sonic_Fall_Sprite",
+				"DefaultValue": "0",
+				"Category": "General",	
+				"Options":
+				{
+					"0": "Sonic CD",
+					"1": "Sonic CD Beta"
+				}
+			},
+			{
+				"InternalName": "Super/Hyper Sonic Fall",
+				"DisplayName": "Super Sonic Fall Sprite:",
+				"Variable": "FSFA_Super_Sonic_Fall_Sprite",
+				"DefaultValue": "0",
+				"Category": "General",	
+				"Options":
+				{
+					"0": "Sonic CD",
+					"1": "Sonic CD Beta"
+				}
+			}
+		]
+	}
+}

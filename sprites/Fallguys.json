@@ -1,0 +1,8 @@
+{
+	// Falling sprites
+	"Super_Sonic_fall_CD_beta":  { "File": "Falling_Sonics.bmp", "Rect": "119,0,37,46", "Center": "18,23" },
+	"Sonic_fall_CD_beta":  { "File": "Falling_Sonics.bmp", "Rect": "79,0,37,43", "Center": "18,21" },
+	"Sonic_fall_CD":  { "File": "Falling_Sonics.bmp", "Rect": "40,0,35,45", "Center": "17,22" },
+	"Super_Sonic_fall_CD":  { "File": "Falling_Sonics.bmp", "Rect": "0,0,35,48", "Center": "17,24" },
+	"Tails_fall":  { "File": "Tails_Fall.bmp", "Rect": "0,0,28,36", "Center": "16,23" }
+}
