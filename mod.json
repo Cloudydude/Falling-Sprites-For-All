@@ -50,7 +50,7 @@
 				"InternalName": "Uncurl",
 				"DisplayName": "While Uncurled",
 				"Variable": "FSFA_Uncurled",
-				"DefaultValue": "0",
+				"DefaultValue": "1",
 				"Category": "General",		
 				"Options":
 				{
