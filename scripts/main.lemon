@@ -1,5 +1,5 @@
 //-------------------------------------------------------//
-// Render Code          				                 //
+// Render Code          				 //
 //-------------------------------------------------------//
 
 global bool FSFA_Sonic_Fall_Sprite
@@ -249,7 +249,7 @@ function void fn0067ee()
 	{
 		// Beginning of any level that has the character starting out in their FALLING_PANIC animation
 		// Levels include: Hydrocity Zone, Marble Garden Zone, Lava Reef Zone, and the Lava Reef Boss Act
-		if (objA1.state == char.state.FALLING_PANIC)
+		if (objA1.state == char.state.FALLING_PANIC ||  ((global.zone_act == 0x0100) || (global.zone_act == 0x0200) || (global.zone_act == 0x0900 && !isMainCharacter(CHARACTER_KNUCKLES)) || (global.zone_act == 0x1600)))
 		{
 			u8[0xfffb000 + 0x20] = char.state.FALLING
 			if (getNumPlayers() >= 2)
