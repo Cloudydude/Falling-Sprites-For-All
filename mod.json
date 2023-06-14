@@ -4,7 +4,7 @@
 		"Name": "Falling sprites for all",
 		"Author": "iCloudius, MiaPaisano, Edition",
 		"Description": "Replaces the awkward mid-air walking with falling sprites",
-		"ModVersion": "2.02"
+		"ModVersion": "2.03"
 	},
 	"Settings":
 	{
@@ -50,7 +50,7 @@
 				"InternalName": "Uncurl",
 				"DisplayName": "While Uncurled",
 				"Variable": "FSFA_Uncurled",
-				"DefaultValue": "1",
+				"DefaultValue": "0",
 				"Category": "General",		
 				"Options":
 				{
