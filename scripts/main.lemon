@@ -14,11 +14,20 @@ define u8 FallFromSpring = u8[0xffffF739 + ((A0 == 0xffffb000) ? 0 : 0x01)]
 
 define u8 char.state.FALLING	=  0x36
 
+// Ignore Sawnic and Sludgles
+function bool SawnicCheck()
+{
+	return !u8[0xffffe654] && ((Mods.isModActive("Sawnic") && isMainCharacter(CHARACTER_SONIC)) || ((Mods.isModActive("SAWNIC & SLUDGLES") && (isMainCharacter(CHARACTER_SONIC) || isMainCharacter(CHARACTER_KNUCKLES)))))
+}
+
 // Diagonal springs
 //# address-hook(0x0234e6) end(0x0235cc)
 function void fn0234e6()
 {
 	base.fn0234e6()
+	if SawnicCheck()
+		return
+
 	if (objA0.state.both == 0x0500 && !competition_mode.active)
 	{
 		if (A1 == 0xffffb000)
@@ -33,6 +42,9 @@ function void fn0234e6()
 function void SpringVertical.ApplyToCharacter()
 {
 	base.SpringVertical.ApplyToCharacter()
+	if SawnicCheck()
+		return
+
 	if (objA0.state.both == 0x100 && !competition_mode.active)
 	{
 		if (A1 == 0xffffb000)
@@ -46,11 +58,8 @@ function void SpringVertical.ApplyToCharacter()
 function void Character.UpdateRotationInAir()
 {
 	base.Character.UpdateRotationInAir()
-	// Ignore Sawnic and Sludgles
-	if !u8[0xffffe654] && ((Mods.isModActive("Sawnic") && char.character == CHARACTER_SONIC) || ((Mods.isModActive("SAWNIC & SLUDGLES") && (char.character == CHARACTER_SONIC || char.character == CHARACTER_KNUCKLES))))
-	{
+	if SawnicCheck()
 		return
-	}
 
 	// This is where the magic happens
 	if (!competition_mode.active && char.spindash != 0x80 && char.state != char.state.SPINDASH && char.state != char.state.ROLLING && !char.rotation.x && char.state <= 0x08)
@@ -245,6 +254,9 @@ function void Character.UpdateGroundContact()
 function void fn0067ee()
 {
 	base.fn0067ee()
+	if SawnicCheck()
+		return
+
 	if (Level_Transitions())
 	{
 		// Beginning of any level that has the character starting out in their FALLING_PANIC animation
@@ -263,6 +275,9 @@ function void fn0067ee()
 function void fn069588()
 {
 	base.fn069588()
+	if SawnicCheck()
+		return
+
 	if (objA0.update_address == 0x0695a8 && Level_Transitions())
 	{
 		u8[0xfffb000 + 0x20] = char.state.FALLING
@@ -276,6 +291,9 @@ function void fn069588()
 function void fn069616()
 {
 	base.fn069616()
+	if SawnicCheck()
+		return
+
 	if (objA0.update_address == 0x069616 && Level_Transitions())
 		u8[0xffffb000 + 0x20] = char.state.FALLING
 }
@@ -287,6 +305,9 @@ function void fn069616()
 function void fn077a02()
 {
 	base.fn077a02()
+	if SawnicCheck()
+		return
+
 	if (u8[0xfffb000 + 0x20] == char.state.GOT_HURT && Level_Transitions())
 		u8[0xfffb000 + 0x20] = char.state.FALLING
 }
@@ -296,6 +317,9 @@ function void fn077a02()
 function void fn077a98()
 {
 	base.fn077a98()
+	if SawnicCheck()
+		return
+
 	if (u8[0xffffb04a + 0x20] == char.state.GOT_HURT && Level_Transitions())
 		u8[0xffffb04a + 0x20] = char.state.FALLING
 }
