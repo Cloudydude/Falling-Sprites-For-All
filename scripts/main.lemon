@@ -182,7 +182,7 @@ function u64 RegularCharFallingAnim(u64 REG_Key, u8 character, u16 animationSpri
 
 function u64 Standalone.getModdedAnimationSpriteKey(u8 character, u16 animationSpriteEx)
 {
-	if (char.state == char.state.FALLING)
+	if ((char.state == char.state.FALLING || char.state.former == char.state.FALLING || char.state == char.state.STRAIGHTJUMP) && animationSpriteEx == 0x46)
 	{
 		u64 key = 0
 		u64 ES_Key = 0
